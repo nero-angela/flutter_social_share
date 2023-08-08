@@ -4,6 +4,7 @@
 //
 
 #import "SocialSharePlugin.h"
+#import <Photos/Photos.h>
 #include <objc/runtime.h>
 
 @implementation SocialSharePlugin
@@ -14,8 +15,20 @@
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
-    if ([@"shareInstagramStory" isEqualToString:call.method] || [@"shareFacebookStory" isEqualToString:call.method]) {
-
+    if ([@"shareInstagramFeed" isEqualToString:call.method]) {
+        /// Album image identifier
+        NSString *localIdentifier = call.arguments[@"localIdentifier"];
+        NSURL *urlScheme = [NSURL URLWithString:@"instagram://app"];
+        if ([[UIApplication sharedApplication] canOpenURL:urlScheme]) {
+            NSString *shareURL = [NSString stringWithFormat:@"instagram://library?OpenInEditor=1&LocalIdentifier=%@", localIdentifier];
+            NSURL *instagramLink = [NSURL URLWithString:shareURL];
+            [[UIApplication sharedApplication] openURL:instagramLink options:@{} completionHandler:nil];
+            result(@"success");
+        } else {
+            result(@"error");
+        }
+    
+    } else if ([@"shareInstagramStory" isEqualToString:call.method] || [@"shareFacebookStory" isEqualToString:call.method]) {
         NSString *destination;
         NSString *stories;
         if ([@"shareInstagramStory" isEqualToString:call.method]) {
@@ -29,7 +42,6 @@
         NSString *stickerImage = call.arguments[@"stickerImage"];
         NSString *backgroundTopColor = call.arguments[@"backgroundTopColor"];
         NSString *backgroundBottomColor = call.arguments[@"backgroundBottomColor"];
-        NSString *attributionURL = call.arguments[@"attributionURL"];
         NSString *backgroundImage = call.arguments[@"backgroundImage"];
         NSString *backgroundVideo = call.arguments[@"backgroundVideo"];
         
@@ -56,10 +68,6 @@
         
         if (![backgroundBottomColor isKindOfClass:[NSNull class]]) {
             [pasteboardItems setObject:backgroundBottomColor forKey:[NSString stringWithFormat:@"%@.backgroundBottomColor",destination]];
-        }
-        
-        if (![attributionURL isKindOfClass:[NSNull class]]) {
-            [pasteboardItems setObject:attributionURL forKey:[NSString stringWithFormat:@"%@.contentURL",destination]];
         }
         
         if (![appId isKindOfClass:[NSNull class]] && [@"shareFacebookStory" isEqualToString:call.method]) {
@@ -89,15 +97,14 @@
             [[UIPasteboard generalPasteboard] setItems:@[pasteboardItems] options:pasteboardOptions];
 
             [[UIApplication sharedApplication] openURL:urlScheme options:@{} completionHandler:nil];
-              result(@"success");
+                result(@"success");
             } else {
                 result(@"error");
             }
         } else {
             result(@"error");
         }
-    }
-    else if ([@"copyToClipboard" isEqualToString:call.method]) {
+    } else if ([@"copyToClipboard" isEqualToString:call.method]) {
         
         NSString *content = call.arguments[@"content"];
         UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];

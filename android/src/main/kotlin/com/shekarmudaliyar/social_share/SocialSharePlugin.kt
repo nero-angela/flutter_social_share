@@ -47,35 +47,49 @@ class SocialSharePlugin:FlutterPlugin, MethodCallHandler, ActivityAware {
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
         activeContext = if (activity != null) activity!!.applicationContext else context!!
 
-        if (call.method == "shareInstagramStory" || call.method == "shareFacebookStory") {
+        if (call.method == "shareInstagramFeed") {
+            val appName = "com.instagram.android"
+            val imagePath: String? = call.argument("imagePath")
+            val imageFile = File(activeContext!!.cacheDir, imagePath)
+            val imageFileProvider = FileProvider.getUriForFile(activeContext!!, activeContext!!.applicationContext.packageName + ".com.shekarmudaliyar.social_share", imageFile)
 
-            val destination : String
+            val share = Intent(Intent.ACTION_SEND)
+            share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            share.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            share.type = "image/*"
+            share.putExtra(Intent.EXTRA_STREAM, imageFileProvider)
+            share.setPackage(appName)
+            activity!!.grantUriPermission(appName, imageFileProvider, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            try {
+                activeContext!!.startActivity(share)
+                result.success("success")
+            } catch (e: Exception) {
+                result.success("error")
+            }
+        } else if (call.method == "shareInstagramStory" || call.method == "shareFacebookStory") {
+
             val appName : String
             val intentString : String
 
             if (call.method == "shareInstagramStory") {
-                destination = "com.instagram.sharedSticker"
                 appName = "com.instagram.android"
                 intentString = "com.instagram.share.ADD_TO_STORY"
             } else {
-                destination = "com.facebook.sharedSticker";
                 appName = "com.facebook.katana";
                 intentString = "com.facebook.stories.ADD_TO_STORY"
             }
 
+            val appId: String? = call.argument("appId")
             val stickerImage: String? = call.argument("stickerImage")
             val backgroundTopColor: String? = call.argument("backgroundTopColor")
             val backgroundBottomColor: String? = call.argument("backgroundBottomColor")
-            val attributionURL: String? = call.argument("attributionURL")
             val backgroundImage: String? = call.argument("backgroundImage")
             val backgroundVideo: String? = call.argument("backgroundVideo")
 
-            val file =  File(activeContext!!.cacheDir,stickerImage)
-            val stickerImageFile = FileProvider.getUriForFile(activeContext!!, activeContext!!.applicationContext.packageName + ".com.shekarmudaliyar.social_share", file)
-            val appId: String? = call.argument("appId")
+            val stickerFile =  File(activeContext!!.cacheDir,stickerImage)
+            val stickerImageFile = FileProvider.getUriForFile(activeContext!!, activeContext!!.applicationContext.packageName + ".com.shekarmudaliyar.social_share", stickerFile)
 
             val intent = Intent(intentString)
-
             intent.type = "image/*"
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -100,9 +114,9 @@ class SocialSharePlugin:FlutterPlugin, MethodCallHandler, ActivityAware {
             }
 
             intent.putExtra("source_application", appId)
-            intent.putExtra("content_url", attributionURL)
             intent.putExtra("top_background_color", backgroundTopColor)
             intent.putExtra("bottom_background_color", backgroundBottomColor)
+            intent.setPackage(appName)
             // Instantiate activity and verify it will resolve implicit intent
             activity!!.grantUriPermission(appName, stickerImageFile, Intent.FLAG_GRANT_READ_URI_PERMISSION)
             if (activity!!.packageManager.resolveActivity(intent, 0) != null) {
@@ -164,8 +178,7 @@ class SocialSharePlugin:FlutterPlugin, MethodCallHandler, ActivityAware {
                 return
             }
             result.success("success")
-        } 
-        else if (call.method == "shareWhatsapp") {
+        } else if (call.method == "shareWhatsapp") {
             //shares content on WhatsApp
             val content: String? = call.argument("content")
             val whatsappIntent = Intent(Intent.ACTION_SEND)
@@ -206,8 +219,7 @@ class SocialSharePlugin:FlutterPlugin, MethodCallHandler, ActivityAware {
             } catch (ex: ActivityNotFoundException) {
                 result.success("error")
             }
-        }
-        else if (call.method == "shareTelegram") {
+        } else if (call.method == "shareTelegram") {
             //shares content on Telegram
             val content: String? = call.argument("content")
             val telegramIntent = Intent(Intent.ACTION_SEND)
@@ -220,8 +232,7 @@ class SocialSharePlugin:FlutterPlugin, MethodCallHandler, ActivityAware {
             } catch (ex: ActivityNotFoundException) {
                 result.success("error")
             }
-        }
-        else if (call.method == "checkInstalledApps") {
+        } else if (call.method == "checkInstalledApps") {
             //check if the apps exists
             //creating a mutable map of apps
             var apps:MutableMap<String, Boolean> = mutableMapOf()

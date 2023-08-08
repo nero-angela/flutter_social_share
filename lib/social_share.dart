@@ -7,13 +7,32 @@ import 'package:path_provider/path_provider.dart';
 class SocialShare {
   static const MethodChannel _channel = const MethodChannel('social_share');
 
+  /// iOS : albumlocal identifier required
+  /// AOS : image file path in temporary directory
+  static Future<String?> shareInstagramFeed(String imagePath) async {
+    Map<String, dynamic> args;
+    if (Platform.isIOS) {
+      /// iOS
+      args = {"localIdentifier": imagePath};
+    } else {
+      /// Android
+      var stickerFilename = "stickerAsset.png";
+      await reSaveImage(imagePath, stickerFilename);
+      args = {"imagePath": stickerFilename};
+    }
+    final String? response = await _channel.invokeMethod(
+      'shareInstagramFeed',
+      args,
+    );
+    return response;
+  }
+
   static Future<String?> shareInstagramStory({
     required String appId,
     required String imagePath,
     String? backgroundTopColor,
     String? backgroundBottomColor,
     String? backgroundResourcePath,
-    String? attributionURL,
   }) async {
     return shareMetaStory(
       appId: appId,
@@ -21,7 +40,6 @@ class SocialShare {
       imagePath: imagePath,
       backgroundTopColor: backgroundTopColor,
       backgroundBottomColor: backgroundBottomColor,
-      attributionURL: attributionURL,
       backgroundResourcePath: backgroundResourcePath,
     );
   }
@@ -32,7 +50,6 @@ class SocialShare {
     String? backgroundTopColor,
     String? backgroundBottomColor,
     String? backgroundResourcePath,
-    String? attributionURL,
   }) async {
     return shareMetaStory(
       appId: appId,
@@ -40,7 +57,6 @@ class SocialShare {
       imagePath: imagePath,
       backgroundTopColor: backgroundTopColor,
       backgroundBottomColor: backgroundBottomColor,
-      attributionURL: attributionURL,
       backgroundResourcePath: backgroundResourcePath,
     );
   }
@@ -51,16 +67,14 @@ class SocialShare {
     String? imagePath,
     String? backgroundTopColor,
     String? backgroundBottomColor,
-    String? attributionURL,
     String? backgroundResourcePath,
   }) async {
     var _imagePath = imagePath;
     var _backgroundResourcePath = backgroundResourcePath;
 
     if (Platform.isAndroid) {
-      var stickerFilename = "stickerAsset.png";
-      await reSaveImage(imagePath, stickerFilename);
-      _imagePath = stickerFilename;
+      _imagePath = "stickerAsset.png";
+      await reSaveImage(imagePath, _imagePath);
       if (backgroundResourcePath != null) {
         var backgroundImageFilename = backgroundResourcePath.split("/").last;
         await reSaveImage(backgroundResourcePath, backgroundImageFilename);
@@ -72,7 +86,6 @@ class SocialShare {
       "stickerImage": _imagePath,
       "backgroundTopColor": backgroundTopColor,
       "backgroundBottomColor": backgroundBottomColor,
-      "attributionURL": attributionURL,
       "appId": appId
     };
 
@@ -155,13 +168,11 @@ class SocialShare {
       "content": text,
       "image": image,
     };
-    final String? response =
-        await _channel.invokeMethod('copyToClipboard', args);
+    final String? response = await _channel.invokeMethod('copyToClipboard', args);
     return response;
   }
 
-  static Future<bool?> shareOptions(String contentText,
-      {String? imagePath}) async {
+  static Future<bool?> shareOptions(String contentText, {String? imagePath}) async {
     Map<String, dynamic> args;
 
     var _imagePath = imagePath;
@@ -194,12 +205,7 @@ class SocialShare {
     return version;
   }
 
-// static Future<String> shareSlack() async {
-//   final String version = await _channel.invokeMethod('shareSlack');
-//   return version;
-// }
-
-  //Utils
+  /// Utils
   static Future<bool> reSaveImage(String? imagePath, String filename) async {
     if (imagePath == null) {
       return false;
@@ -209,9 +215,8 @@ class SocialShare {
     File file = File(imagePath);
     Uint8List bytes = file.readAsBytesSync();
     var stickerData = bytes.buffer.asUint8List();
-    String stickerAssetName = filename;
     final Uint8List stickerAssetAsList = stickerData;
-    final stickerAssetPath = '${tempDir.path}/$stickerAssetName';
+    final stickerAssetPath = '${tempDir.path}/$filename';
     file = await File(stickerAssetPath).create();
     file.writeAsBytesSync(stickerAssetAsList);
     return true;
