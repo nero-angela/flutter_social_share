@@ -20,6 +20,6 @@ flutter:
     platforms:
       android:
         package: com.shekarmudaliyar.social_share
-        pluginClass: SocialSharePlugin
+        pluginClass: SocialSharePlugins
       ios:
-        pluginClass: SocialSharePlugin
+        pluginClass: SocialSharePlugins

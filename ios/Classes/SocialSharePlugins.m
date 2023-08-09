@@ -3,19 +3,21 @@
 //  Copyright © 2019 Shekar Mudaliyar. All rights reserved.
 //
 
-#import "SocialSharePlugin.h"
-#import <Photos/Photos.h>
-#include <objc/runtime.h>
+#import "SocialSharePlugins.h"
 
-@implementation SocialSharePlugin
+@implementation SocialSharePlugins
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
   FlutterMethodChannel* channel = [FlutterMethodChannel methodChannelWithName:@"social_share" binaryMessenger:[registrar messenger]];
-  SocialSharePlugin* instance = [[SocialSharePlugin alloc] init];
+  SocialSharePlugins* instance = [[SocialSharePlugins alloc] init];
   [registrar addMethodCallDelegate:instance channel:channel];
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
-    if ([@"shareInstagramFeed" isEqualToString:call.method]) {
+    if ([@"shareFacebookFeed" isEqualToString:call.method]) {
+        NSString *imagePath = call.arguments[@"imagePath"];
+        NSString *appID = @"YOUR_APP_ID";
+        result(@"success");
+    } else if ([@"shareInstagramFeed" isEqualToString:call.method]) {
         /// Album image identifier
         NSString *localIdentifier = call.arguments[@"localIdentifier"];
         NSURL *urlScheme = [NSURL URLWithString:@"instagram://app"];
@@ -44,10 +46,9 @@
         NSString *backgroundBottomColor = call.arguments[@"backgroundBottomColor"];
         NSString *backgroundImage = call.arguments[@"backgroundImage"];
         NSString *backgroundVideo = call.arguments[@"backgroundVideo"];
+        NSString *appId = call.arguments[@"appId"];
         
         NSFileManager *fileManager = [NSFileManager defaultManager];
-
-        NSString *appId = call.arguments[@"appId"];
         if ([backgroundTopColor isKindOfClass:[NSNull class]]) {
             NSString *path = [[NSBundle mainBundle] pathForResource:@"Info" ofType:@"plist"];
             NSDictionary *dict = [NSDictionary dictionaryWithContentsOfFile:path];

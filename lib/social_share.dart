@@ -27,6 +27,17 @@ class SocialShare {
     return response;
   }
 
+  static Future<String?> shareFacebookFeed(String imagePath) async {
+    var stickerFilename = "stickerAsset.png";
+    await reSaveImage(imagePath, stickerFilename);
+    Map<String, dynamic> args = {"imagePath": stickerFilename};
+    final String? response = await _channel.invokeMethod(
+      'shareFacebookFeed',
+      args,
+    );
+    return response;
+  }
+
   static Future<String?> shareInstagramStory({
     required String appId,
     required String imagePath,

@@ -32,7 +32,7 @@ import android.content.Context
 
 
 
-class SocialSharePlugin:FlutterPlugin, MethodCallHandler, ActivityAware {
+class SocialSharePlugins:FlutterPlugin, MethodCallHandler, ActivityAware {
     private lateinit var channel: MethodChannel
     private var activity: Activity? = null
     private var activeContext: Context? = null
@@ -46,8 +46,26 @@ class SocialSharePlugin:FlutterPlugin, MethodCallHandler, ActivityAware {
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
         activeContext = if (activity != null) activity!!.applicationContext else context!!
+        if (call.method == "shareFacebookFeed") {
+            val appName = "com.facebook.katana"
+            val imagePath: String? = call.argument("imagePath")
+            val imageFile = File(activeContext!!.cacheDir, imagePath)
+            val imageFileProvider = FileProvider.getUriForFile(activeContext!!, activeContext!!.applicationContext.packageName + ".com.shekarmudaliyar.social_share", imageFile)
 
-        if (call.method == "shareInstagramFeed") {
+            val share = Intent(Intent.ACTION_SEND)
+            share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            share.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            share.type = "image/*"
+            share.putExtra(Intent.EXTRA_STREAM, imageFileProvider)
+            share.setPackage(appName)
+            activity!!.grantUriPermission(appName, imageFileProvider, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            try {
+                activeContext!!.startActivity(share)
+                result.success("success")
+            } catch (e: Exception) {
+                result.success("error")
+            }
+        } else if (call.method == "shareInstagramFeed") {
             val appName = "com.instagram.android"
             val imagePath: String? = call.argument("imagePath")
             val imageFile = File(activeContext!!.cacheDir, imagePath)
