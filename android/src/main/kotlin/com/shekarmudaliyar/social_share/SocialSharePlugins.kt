@@ -113,25 +113,24 @@ class SocialSharePlugins:FlutterPlugin, MethodCallHandler, ActivityAware {
             intent.type = "image/*"
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            // interactive_asset_uri를 putExtra로 보내면 작동이 안됨
-            // intent.putExtra("interactive_asset_uri", stickerImageFile)
-            
-            // setDataAndType으로 백그라운드 이미지로 스티커를 전송하니 잘됨
-            intent.setDataAndType(stickerImageFile,"image/*")
-
+            intent.putExtra("interactive_asset_uri", stickerImageFile)
             if (call.method == "shareFacebookStory") {
                 intent.putExtra("com.facebook.platform.extra.APPLICATION_ID", appId)
             }
 
-            // 스티커를 setDataAndType으로 보냈기 때문에, 실제 백그라운드는 임시 주석처리
-            // val backgroundImage: String? = call.argument("backgroundImage")
+            // 23.08.14
+            // - 스티커만 전송 불가능
+            // - backgroundImage가 없으면 에러가 발생함.
+            // - backgroundImage를 필수로 전송하기 때문에 배경 색상 적용이 안됨
+            val backgroundImage: String? = call.argument("backgroundImage")
+            if (backgroundImage!=null) {
+                //check if background image is also provided
+                val backfile =  File(activeContext!!.cacheDir,backgroundImage)
+                val backgroundImageFile = FileProvider.getUriForFile(activeContext!!, activeContext!!.applicationContext.packageName + ".com.shekarmudaliyar.social_share", backfile)
+                intent.setDataAndType(backgroundImageFile,"image/*")
+            }
+
             // val backgroundVideo: String? = call.argument("backgroundVideo")
-            // if (backgroundImage!=null) {
-            //     //check if background image is also provided
-            //     val backfile =  File(activeContext!!.cacheDir,backgroundImage)
-            //     val backgroundImageFile = FileProvider.getUriForFile(activeContext!!, activeContext!!.applicationContext.packageName + ".com.shekarmudaliyar.social_share", backfile)
-            //     intent.setDataAndType(backgroundImageFile,"image/*")
-            // }
             // if (backgroundVideo!=null) {
             //     //check if background video is also provided
             //     val backfile =  File(activeContext!!.cacheDir,backgroundVideo)
@@ -142,6 +141,8 @@ class SocialSharePlugins:FlutterPlugin, MethodCallHandler, ActivityAware {
             intent.putExtra("source_application", appId)
             intent.putExtra("top_background_color", backgroundTopColor)
             intent.putExtra("bottom_background_color", backgroundBottomColor)
+            // val attributionURL: String? = call.argument("attributionURL")
+            // intent.putExtra("content_url", attributionURL)
             intent.setPackage(appName)
             // Instantiate activity and verify it will resolve implicit intent
             activity!!.grantUriPermission(appName, stickerImageFile, Intent.FLAG_GRANT_READ_URI_PERMISSION)
