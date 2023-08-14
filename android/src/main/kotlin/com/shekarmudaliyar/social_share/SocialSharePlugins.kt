@@ -71,7 +71,11 @@ class SocialSharePlugins:FlutterPlugin, MethodCallHandler, ActivityAware {
             val imageFile = File(activeContext!!.cacheDir, imagePath)
             val imageFileProvider = FileProvider.getUriForFile(activeContext!!, activeContext!!.applicationContext.packageName + ".com.shekarmudaliyar.social_share", imageFile)
 
-            val share = Intent(Intent.ACTION_SEND)
+            // Share to feed
+            val share = Intent("com.instagram.share.ADD_TO_FEED")
+
+            // Share to instagram instents
+            // val share = Intent(Intent.ACTION_SEND)
             share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             share.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             share.type = "image/*"
