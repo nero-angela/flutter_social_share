@@ -14,10 +14,9 @@
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
     if ([@"shareFacebookFeed" isEqualToString:call.method]) {
-        NSString *imagePath = call.arguments[@"imagePath"];
-        NSString *appID = @"YOUR_APP_ID";
-        result(@"success");
-    } else if ([@"shareInstagramFeed" isEqualToString:call.method]) {
+        result(@"error");
+    } else if ([@"shareInstagram" isEqualToString:call.method]) {
+        /// Share to instagram -> feed or stories or message dialog
         /// Album image identifier
         NSString *localIdentifier = call.arguments[@"localIdentifier"];
         NSURL *urlScheme = [NSURL URLWithString:@"instagram://app"];
@@ -29,7 +28,18 @@
         } else {
             result(@"error");
         }
-    
+    } else if ([@"shareInstagramFeed" isEqualToString:call.method]) {
+        /// Album image identifier
+        NSString *localIdentifier = call.arguments[@"localIdentifier"];
+        NSURL *urlScheme = [NSURL URLWithString:@"instagram://app"];
+        if ([[UIApplication sharedApplication] canOpenURL:urlScheme]) {
+            NSString *shareURL = [NSString stringWithFormat:@"instagram://share?media=%@", localIdentifier];
+            NSURL *instagramLink = [NSURL URLWithString:shareURL];
+            [[UIApplication sharedApplication] openURL:instagramLink options:@{} completionHandler:nil];
+            result(@"success");
+        } else {
+            result(@"error");
+        }
     } else if ([@"shareInstagramStory" isEqualToString:call.method] || [@"shareFacebookStory" isEqualToString:call.method]) {
         NSString *destination;
         NSString *stories;
@@ -88,7 +98,7 @@
             [pasteboardItems setObject:videoBackgroundShare forKey:[NSString stringWithFormat:@"%@.backgroundVideo",destination]];
         }
 
-        NSURL *urlScheme = [NSURL URLWithString:[NSString stringWithFormat:@"%@://share?source_application=%@", stories,appId]];
+        NSURL *urlScheme = [NSURL URLWithString:[NSString stringWithFormat:@"%@://share?source_application=%@", stories, appId]];
         
         if ([[UIApplication sharedApplication] canOpenURL:urlScheme]) {
 

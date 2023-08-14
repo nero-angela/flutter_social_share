@@ -65,6 +65,26 @@ class SocialSharePlugins:FlutterPlugin, MethodCallHandler, ActivityAware {
             } catch (e: Exception) {
                 result.success("error")
             }
+        } else if (call.method == "shareInstagram") {
+            val appName = "com.instagram.android"
+            val imagePath: String? = call.argument("imagePath")
+            val imageFile = File(activeContext!!.cacheDir, imagePath)
+            val imageFileProvider = FileProvider.getUriForFile(activeContext!!, activeContext!!.applicationContext.packageName + ".com.shekarmudaliyar.social_share", imageFile)
+
+            // Share to instagram instents
+            val share = Intent(Intent.ACTION_SEND)
+            share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            share.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            share.type = "image/*"
+            share.putExtra(Intent.EXTRA_STREAM, imageFileProvider)
+            share.setPackage(appName)
+            activity!!.grantUriPermission(appName, imageFileProvider, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            try {
+                activeContext!!.startActivity(share)
+                result.success("success")
+            } catch (e: Exception) {
+                result.success("error")
+            }
         } else if (call.method == "shareInstagramFeed") {
             val appName = "com.instagram.android"
             val imagePath: String? = call.argument("imagePath")
@@ -73,9 +93,6 @@ class SocialSharePlugins:FlutterPlugin, MethodCallHandler, ActivityAware {
 
             // Share to feed
             val share = Intent("com.instagram.share.ADD_TO_FEED")
-
-            // Share to instagram instents
-            // val share = Intent(Intent.ACTION_SEND)
             share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             share.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             share.type = "image/*"

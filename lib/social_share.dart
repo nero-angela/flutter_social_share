@@ -9,6 +9,26 @@ class SocialShare {
 
   /// iOS : albumlocal identifier required
   /// AOS : image file path in temporary directory
+  static Future<String?> shareInstagram(String imagePath) async {
+    Map<String, dynamic> args;
+    if (Platform.isIOS) {
+      /// iOS
+      args = {"localIdentifier": imagePath};
+    } else {
+      /// Android
+      var stickerFilename = "stickerAsset.png";
+      await reSaveImage(imagePath, stickerFilename);
+      args = {"imagePath": stickerFilename};
+    }
+    final String? response = await _channel.invokeMethod(
+      'shareInstagram',
+      args,
+    );
+    return response;
+  }
+
+  /// iOS : albumlocal identifier required
+  /// AOS : image file path in temporary directory
   static Future<String?> shareInstagramFeed(String imagePath) async {
     Map<String, dynamic> args;
     if (Platform.isIOS) {
