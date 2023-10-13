@@ -199,11 +199,13 @@ class SocialShare {
       "content": text,
       "image": image,
     };
-    final String? response = await _channel.invokeMethod('copyToClipboard', args);
+    final String? response =
+        await _channel.invokeMethod('copyToClipboard', args);
     return response;
   }
 
-  static Future<bool?> shareOptions(String contentText, {String? imagePath}) async {
+  static Future<bool?> shareOptions(String contentText,
+      {String? imagePath}) async {
     Map<String, dynamic> args;
 
     var _imagePath = imagePath;
